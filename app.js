@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require("express");
+const codRouter= require("./routes/handle");
 const app = express();
 const port = 8080;
 
@@ -17,6 +18,7 @@ app.get("/run", async (req, res) => {
     res.send("WOW THIS IS A RESPONSE");
 });
 
+app.use("/", codRouter);
 async function makeReq() {
 await axios.get('http://10.202.0.2/')
     .then(res => {
