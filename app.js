@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const app = express();
 const port = 8080;
-const {compileTests, run} = require("./routes/runCode");
+const {compileTests, run, addTests} = require("./routes/runCode");
 
 const axios = require('axios');
 
@@ -15,16 +15,18 @@ app.get("/wow", async (req, res) => {
 	res.send("WOW");
 });
 
-app.post("/lol", async (req, res) => {
-	console.log(req);
-	res.send("daniel orz";)
+app.post("/addTest", async (req, res) => {
+	console.log("INTERESTINSDSDFSDFG");
+	console.log(req.body)
+	addTests(req.body.pid, req.body.test)
+	res.send("nice")
 });
 
 app.post("/run", async (req, res) => {
 	console.log("IT WORKED");
 	console.log(req.body);
-	//let language = req.body.lang;
-	console.log(language);
+	let language = req.body.lang;
+	//console.log(language);
 	if (language != 'python' && language != 'cpp' && language != 'java') {
 		console.log("bad");
 		res.send("unacceptable code language");
@@ -33,13 +35,13 @@ app.post("/run", async (req, res) => {
 
 	let pid = req.body.problemid;
 	if(pid ==""){
-		res.send("WHAT PROBLEM STUPID");
+		res.send("You didn't select an actual problem :O");
 		return;
 	}
 	let file = req.body.code;
 	code = {"code": req.body.code, "language":language}
-	problem = {"id": 1, "tl" : 1000, "ml" : 1000, "checkid": 1}
-
+	problem = {"id": parseInt(pid), "tl" : 1000, "ml" : 1000, "checkid": 1}
+	console.log(problem);
 	result= await run(problem, code);
 	console.log("YA");
 	console.log(result);

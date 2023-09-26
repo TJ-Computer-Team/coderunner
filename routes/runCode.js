@@ -1,144 +1,108 @@
 const execSync = require('child_process').execSync;
 const fs = require('fs');
+const {add, testSql} = require("./sql");
 
 const axios = require('axios');
-
-
-async function compileTests(problem, tests){
-	console.log(problem.id);
-	let loc = "../problems/"+problem.id;
-	if (!fs.existsSync(loc+problem.id)){
+async function addTests(pid, tests){
+	console.log("INTERESTING");
+	let loc = "../problems/"+pid;
+	console.log(pid, tests)
+	console.log("here is loc");
+	console.log(loc);
+	if (!fs.existsSync(loc+pid)){
 		fs.mkdirSync(loc+"/sol", { recursive: true });
 	}
-	if (!fs.existsSync(loc+problem.id)){
+	if (!fs.existsSync(loc+pid)){
 		fs.mkdirSync(loc+"/test", { recursive: true });
 	}
-        console.log(problem);
-        let solution = problem.sol;
-        let lang = problem.lang;
-	let lst = [];
 	for(let i = 0; i<tests.length; i++){
-		fs.writeFileSync('test.in', tests[i].test); //maybe get rid of this?
-		fs.writeFileSync(loc+"/test/"+i, tests[i].test);
-		console.log("tests", tests[i].test);
-		let output = ''
-		if (lang== 'cpp') {
-			fs.writeFileSync('subcode/test.cpp', solution);
-			//write to correct file for code
-			//output = execSync('test.in<sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg', { encoding: 'utf-8' });  //pipe input into this
-		}
-		else if (lang== 'python') {
-			console.log(solution);
-			console.log("running python");
-			fs.writeFileSync('subcode/hello.py', solution);
-			try {
-				output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < test.in', { encoding: 'utf-8' });
-			}
-			catch (error) {
-				console.log("ERROR", error);
-			}
-			console.log("output was", output);
-		}
-		else if (lang== 'java') {
-			fs.writeFileSync('subcode/test.java', solution);
-			output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/java.cfg', { encoding: 'utf-8' });  
-		}
-		fs.writeFileSync(loc+"/sol/"+i, output);
+		fs.writeFileSync(loc+"/test/"+i, tests);
 	}
 }
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+async function runCode(input_file, lang, solution){
+	let output = ''
+	console.log(lang);
+	if (lang== 'cpp') {
+		fs.writeFileSync('subcode/test.cpp', solution);
+		//write to correct file for code
+		//output = execSync('test.in<sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg', { encoding: 'utf-8' });  //pipe input into this
+	}
+	else if (lang== 'python') {
+		console.log("running python\n" + solution);
+		fs.writeFileSync('subcode/hello.py', solution);
+		try {
+			str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
+			output = execSync(str, { encoding: 'utf-8' });
+		}
+		catch (error) {
+			console.log("ERROR", error);
+		}
+		console.log("output was", output);
+	}
+	else if (lang== 'java') {
+		fs.writeFileSync('subcode/test.java', solution);
+		output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/java.cfg', { encoding: 'utf-8' });  
+	}
+	return output;
 }
-function grabTests(task){
-	return [1, 2]
-}
-function grabChecker(cid){
-}
-async function run(problem, submit) {
+async function compileTests(problem){
 	let loc = "../problems/"+problem.id;
-        let tests = await grabTests(task)
-        let checkid = problem.checkid;
+	console.log(problem.id);
+        console.log(problem);
+	fs.readdir(loc, (err, files)=> {
+		for(i in files){
+			fs.writeFileSync(loc+"/sol/"+i, runCode(i, problem.lang, code));
+		}
+	});
+}
+
+async function run(problem, submit) {
+	let loc = "../problems/"+problem.id+"/test/";
+        let loc2 = "../problems/"+problem.id+"/sol/";
+	let checkid = problem.checkid;
         let tl = problem.tl;
         let ml = problem.ml;
         let userCode = submit.code;
-
         let language = submit.language;
 
         let output = undefined, fverdict = "AC"
+	checkerCode = fs.readFileSync(loc2+"/checker.cpp", {encoding:'utf8', flag:'r'})
+	console.log(checkerCode);
+	console.log(loc)
+	fs.readdir(loc, async (err, files)=> {
+		for(i in files){
+			console.log(loc+i);
+			output = await runCode(loc+i, language, userCode)
+			console.log("output was", output)
+			//juryAnswer = await runCode(loc+i, language, checkerCode);
 
-        for(let i = 0; i<tests.length; i++){
-                let verdict = undefined;
-                fs.writeFileSync('test.in', tests[i].test);
-                if (language == 'cpp') {
-                        fs.writeFileSync('subcode/test.cpp', userCode);
-                        //write to correct file for code
-                        let wow = execSync('g++ subcode/test.cpp');
-                        output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < test.in', { encoding: 'utf-8' });  //pipe input into this
-                }
-                else if (language == 'python') {
-                        console.log("running python");
-                        fs.writeFileSync('subcode/hello.py', userCode);
-                        try {
-                                //output = await execSync('sudo ./nsjail/nsjail --config nsjail/configs/python.cfg > test.in', { encoding: 'utf-8' });
-                                //JOHNNY I CHNGED UR CODE CUZ IT WOULDNT COMPILE SRY
-                                output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < test.in', { encoding: 'utf-8' });
-                        }
-                        catch (error) {
-                                console.log("ERROR", error);
-                        }
+			/*
+			fs.writeFileSync('test.in', output);
+			fs.writeFileSync('test.out', tests[i].ans);
+			fverdict = runCode(i, "c++", checkerCode)
+			if (fverdict!="AC") {
+				break;
+			}
+			*/
+		}
+	});
 
-                }
-                else if (language == 'java') {
-                        fs.writeFileSync('test.java', userCode);
-                        output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/java.cfg', { encoding: 'utf-8' });  
-                }
-                console.log("output was", output);
-		/**
-                fs.writeFileSync('test.in', output);
-                fs.writeFileSync('test.out', tests[i].ans);
-                let check= grabChecker(checkid);
-                let ccode = check.code;
-                let lang= check.lang;
-                if (lang== 'cpp') {
-                        fs.writeFileSync('subcode/test.cpp', ccode);
-                        let wow = execSync('g++ subcode/test.cpp');
-                        //write to correct file for code
-                        output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg', { encoding: 'utf-8' });  //pipe input into this
-                }
-                else if (lang== 'python') {
-                        console.log(solution);
-                        console.log("running python");
-                        fs.writeFileSync('subcode/hello.py', ccode);
-                        output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < test.in', { encoding: 'utf-8' });
-                        //updateTestSol(tests[i].id, output);
-                }
-                else if (lang== 'java') {
-                        fs.writeFileSync('test.java', ccode);
-                        output = execSync('sudo ./nsjail/nsjail --config nsjail/configs/java.cfg', { encoding: 'utf-8' });  
-                }
-                if(!output.includes("AC")){
-                        console.log("WRONG", output);
-                        console.log("CHECKER IS ", check);
-                        fverdict = "WA";
-                        break;
-                }
-		**/
-        }
-
-        //checker = undefined;
-        userCode = undefined;
-        //input = undefined;
 	return fverdict
+}
+async function addProblem(pid, tl, ml, checker){
+	let loc = "../problems/"+pid;
+	fs.writeFileSync(loc+"/checker.cpp", checker);
+	add(pid, tl, ml);
 }
 
 module.exports = {
-        run: (pid, sid) => {
-                return queue(pid, sid);
+        run: (problem, submit) => {
+                return run(problem, submit);
         },
-        compileTests: (problem, tests) => {
-                return compileTests(problem, tests);
+        compileTests: (problem) => {
+                return compileTests(problem);
+        },
+        addTests: (problem, tests) => {
+                return addTests(problem, tests);
         }
 }
