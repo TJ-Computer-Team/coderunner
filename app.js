@@ -2,17 +2,24 @@ require('dotenv').config();
 const express = require("express");
 const app = express();
 const port = 8080;
-const {compileTests, run, addTests} = require("./routes/runCode");
+const {compileTests, run, addTests, addChecker} = require("./routes/runCode");
 
 const axios = require('axios');
 
-
-app.use(express.urlencoded({ extended: true}));
+console.log(performance.now());
+app.use(express.urlencoded({ extended: false}));
 
 
 app.get("/wow", async (req, res) => {
 	console.log("hi!");
 	res.send("WOW");
+});
+
+app.post("/addChecker", async (req, res) => {
+	console.log("adding checer");
+	console.log(req.body)
+	addChecker(req.body.pid, req.body.code)
+	res.send("thanks for adding checker")
 });
 
 app.post("/addTest", async (req, res) => {
@@ -43,7 +50,7 @@ app.post("/run", async (req, res) => {
 	problem = {"id": parseInt(pid), "tl" : 1000, "ml" : 1000, "checkid": 1}
 	console.log(problem);
 	result= await run(problem, code);
-	console.log("YA");
+	console.log("FINISHED RUNNING CODE, RESULT IS:");
 	console.log(result);
 	res.send(result)
 	//make this post and run code here, return verdict. still do queueing in the main vm
