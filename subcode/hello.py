@@ -3,8 +3,13 @@ f = open("../problems/"+pid+"/sol/"+test, "r").readlines()
 f2 = open("../output.txt", "r").readlines()
 
 if (len(f) != len(f2)):
-        print("User linecount is not right or code did not compile.")
-        print("WA")
+        x = ''.join(f2)[:10]
+        x = x.strip()
+        if len(x)==0:
+              print(f"User didn't output anything")
+        else:
+              print(f"User output was {x}")
+        print("Verdict: WA")
         exit()
 
 t = 0

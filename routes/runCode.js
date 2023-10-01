@@ -126,19 +126,29 @@ async function run(problem, submit) {
         let language = submit.language;
 
         return new Promise ((res, rej) => {
-
-	let output = undefined;
-	let maxtime = -1;
-        checkerCode = fs.readFileSync(loc2, {encoding:'utf8', flag:'r'})
-        console.log(checkerCode);
-        console.log(loc);
-	let solved = true;
-
 	let payload = {
 		verdict: "ER",
 		output: undefined
 	}
+
+	let output = undefined;
+	let maxtime = -1;
+	try{
+		checkerCode = fs.readFileSync(loc2, {encoding:'utf8', flag:'r'})
+	}catch(error){
+		console.log("error :", error);
+		payload.output = "something went wrong, dont do waht you just did."
+		res(payload)
+	}
+        console.log(checkerCode);
+        console.log(loc);
+	let solved = true;
+
         fs.readdir(loc, async (err, files)=> {
+		if(err){
+			console.log(err)
+			return;
+		}
                 for(i in files){
                         console.log(loc+i);
                         outputfull = await runCode(loc+i, language, userCode)
