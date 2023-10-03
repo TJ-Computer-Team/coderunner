@@ -1,8 +1,40 @@
-package subcode;
-import java.util.*;
-import java.io.*;
-public class test{
+#include <bits/stdc++.h>
 
-   public static void main(String[] args) {
-   }
+using namespace std;
+
+struct DSU {
+	vector<int> e;
+	void init(int n) { e = vector<int>(n, -1); }
+	int get(int x) { return (e[x] < 0 ? x : e[x] = get(e[x])); }
+	bool sameSet(int x, int y) { return get(x) == get(y); }
+	int size(int x) { return -e[get(x)]; }
+	bool unite(int x, int y) {
+		x = get(x), y = get(y);
+		if (x == y) return 0;
+		if (e[x] > e[y]) swap(x, y);
+		e[x] += e[y];
+		e[y] = x;
+		return 1;
+	}
+};
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	double x[1000000000];
+	DSU dsu;
+	dsu.init(n);
+	int cc = n, large = 1;
+
+	while (m--) {
+		int x, y;
+		cin >> x >> y;
+		x--;
+		y--;
+		if (dsu.unite(x, y)) {
+			large = max(large, dsu.size(x));
+			cc--;
+		}
+		cout << cc << ' ' << large << '\n';
+	}
 }

@@ -43,7 +43,7 @@ async function runCode(input_file, lang, solution){
                 //write to correct file for code
                 try {
                         str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file
-                        output = execSync("g++ subcode/test.cpp", { encoding: 'utf-8' });
+                        output = execSync("g++ -o subcode/a.out subcode/test.cpp", { encoding: 'utf-8' });
                         start = performance.now();
 			output = execSync(str, { encoding: 'utf-8' });
 			end = performance.now();
@@ -137,7 +137,8 @@ async function run(problem, submit) {
 		checkerCode = fs.readFileSync(loc2, {encoding:'utf8', flag:'r'})
 	}catch(error){
 		console.log("error :", error);
-		payload.output = "something went wrong, dont do waht you just did."
+		payload.verdict = "ERROR"
+		payload.output = "Problem ID not found"
 		res(payload)
 	}
         console.log(checkerCode);
@@ -156,8 +157,15 @@ async function run(problem, submit) {
 			if (outputfull.time > maxtime) maxtime = outputfull.time;
 			if(outputfull.time==-1){
 				solved = false;
-				payload.verdict = "ERROR";
-				payload.tl = -1;
+				payload.verdict = "Compilation Error"
+				if(output.includes("run time >= time limit")){
+					payload.verdict = "TLE"
+				}else if(output.includes("MemoryError")||output.includes("SIGSEGV")||output.includes("StackOverflowError")){
+					payload.verdict = "MLE"
+				}
+				payload.tl = maxtime
+				output = output.replace(/^\[I\].*/gm, '');
+				output = output.trim()
 				payload.output = output
 				console.log("error in compiliation.")
 				res(payload);
