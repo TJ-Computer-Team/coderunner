@@ -1,14 +1,11 @@
-package subcode;
-
-public class test
-{
-    private static void addItself(int i)
-    {
-        addItself(i+i);   //calling itself with no terminating condition
-    }
-     
-    public static void main(String[] args) 
-    {
-        addItself(10);
-    }
+package subcode; 
+public class test {
+	public static void main(String args[]) {
+		Scanner sc = new Scanner(System.in); 
+		int out = 0;
+		while(sc.hasNext()) {
+			out += sc.nextInt();
+		}
+		System.out.print(out);
+	}
 }

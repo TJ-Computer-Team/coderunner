@@ -23,9 +23,8 @@ app.post("/addChecker", async (req, res) => {
 });
 
 app.post("/addTest", async (req, res) => {
-	console.log("INTERESTINSDSDFSDFG");
-	console.log(req.body)
-	addTests(req.body.pid, req.body.test)
+	console.log(req.body);
+	addTests(req.body.pid, req.body.tid, req.body.test, req.body.out)
 	res.send("nice")
 });
 

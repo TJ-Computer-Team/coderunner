@@ -3,10 +3,10 @@ const fs = require('fs');
 const {add, testSql} = require("./sql");
 
 const axios = require('axios');
-async function addTests(pid, tests){
+async function addTests(pid, tid, test, out){
         console.log("INTERESTING");
         let loc = "../problems/"+pid;
-        console.log(pid, tests)
+        console.log(pid, tid, test, out);
         console.log("here is loc");
         console.log(loc);
         if (!fs.existsSync(loc+pid)){
@@ -15,9 +15,8 @@ async function addTests(pid, tests){
         if (!fs.existsSync(loc+pid)){
                 fs.mkdirSync(loc+"/test", { recursive: true });
         }
-        for(let i = 0; i<tests.length; i++){
-                fs.writeFileSync(loc+"/test/"+i, tests);
-        }
+        fs.writeFileSync(loc+"/test/"+tid, test);
+	fs.writeFileSync(loc+"/sol/"+tid, out);
 }
 async function addChecker(pid, code){
         console.log("INTERESTING");
@@ -33,7 +32,7 @@ async function addChecker(pid, code){
         }
         fs.writeFileSync(loc+"/code", code);
 }
-async function runCode(input_file, lang, solution){
+async function runCode(input_file, lang, solution, checker=false){
         let output = ''
         console.log(lang);
 	let start = 0;
@@ -62,7 +61,10 @@ async function runCode(input_file, lang, solution){
                 console.log("running python\n" + solution);
                 fs.writeFileSync('subcode/hello.py', solution);
                 try {
-                        str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
+			str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
+			if(checker){
+				str = 'sudo ./nsjail/nsjail --config nsjail/configs/pythonchecker.cfg < '+input_file
+			}
                         start = performance.now();
 			output = execSync(str, { encoding: 'utf-8' });
                 	end = performance.now();
@@ -82,7 +84,7 @@ async function runCode(input_file, lang, solution){
                 try {
                         str = 'sudo ./nsjail/nsjail --config nsjail/configs/java.cfg < '+input_file
                         output = execSync("javac subcode/test.java", { encoding: 'utf-8' });
-                        start = performance.now();
+                        start = performance.now()+900;
 			output = execSync(str, { encoding: 'utf-8' });
                 	end = performance.now();
 		}
@@ -150,7 +152,10 @@ async function run(problem, submit) {
 			console.log(err)
 			return;
 		}
-                for(i in files){
+		let testnum = 0;
+		console.log(files)
+                for(_ in files){
+			i = files[_]
                         console.log(loc+i);
                         outputfull = await runCode(loc+i, language, userCode)
                         output = outputfull.output;
@@ -171,10 +176,10 @@ async function run(problem, submit) {
 				res(payload);
 				break;
 			}
-			fs.writeFileSync("../output.txt", output)
-                        fs.writeFileSync("../args.txt", problem.id+" "+i)
+			fs.writeFileSync("subcode/output.txt", output)
+                        fs.writeFileSync("subcode/args.txt", problem.id+" "+i)
                         console.log("output was", output)
-                        juryAnswer = await runCode("../args.txt", "python", checkerCode);
+                        juryAnswer = await runCode("subcode/args.txt", "python", checkerCode, true);
   			juryAnswer = juryAnswer.output;
                         console.log("jury answer was", juryAnswer)
 			console.log(maxtime, outputfull.time);
@@ -183,13 +188,18 @@ async function run(problem, submit) {
                         if(!(juryAnswer.trim() === "AC")){
                                 console.log("Wrong answer - terminating...")
 				payload.verdict = "WA";
-				payload.output = juryAnswer;
+				if (testnum < 1) {
+					payload.output = "Test " + testnum + "\n" + juryAnswer;
+				}
+				else {
+					payload.output = "DISABLED [Please contact Admin if you can view this not as Admin]\n\n Test " + testnum + "\n" + juryAnswer;
+				}
 				payload.tl = maxtime;
                                 solved = false;
 				res(payload);
 				break;
                         }
-
+			testnum += 1;
                 }
 		if (solved) {
 			payload.verdict = "AC";
@@ -215,8 +225,8 @@ module.exports = {
         compileTests: (problem) => {
                 return compileTests(problem);
         },
-        addTests: (problem, tests) => {
-                return addTests(problem, tests);
+        addTests: (problem, tid, test, out) => {
+                return addTests(problem, tid, test, out);
         },
         addChecker: (pid, code) => {
                 return addChecker(pid, code);

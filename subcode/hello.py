@@ -1,6 +1,6 @@
 pid, test= input().split()
-f = open("../problems/"+pid+"/sol/"+test, "r").readlines()
-f2 = open("../output.txt", "r").readlines()
+f = open("../../problems/"+pid+"/sol/"+test, "r").readlines()
+f2 = open("output.txt", "r").readlines()
 
 if (len(f) != len(f2)):
         x = ''.join(f2)[:10]
@@ -15,7 +15,7 @@ if (len(f) != len(f2)):
 t = 0
 for i, j in zip(f, f2):
         if i.strip() != j.strip():
-                f3 = open("../problems/"+pid+"/test/"+test, "r").readlines()
+                f3 = open("../../problems/"+pid+"/test/"+test, "r").readlines()
                 print(f"Failed on test {t}:\n")
                 for line in f3[:10]:
                         line = line.strip()
