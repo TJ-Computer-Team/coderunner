@@ -16,7 +16,7 @@ app.get("/wow", async (req, res) => {
 });
 
 app.post("/addChecker", async (req, res) => {
-	console.log("adding checker");
+	console.log("adding checer");
 	console.log(req.body)
 	addChecker(req.body.pid, req.body.code)
 	res.send("thanks for adding checker")
@@ -29,25 +29,25 @@ app.post("/addTest", async (req, res) => {
 });
 
 app.post("/run", async (req, res) => {
-	console.log("IT WORKED, /run called");
-	console.log(req.body.problemid);
+	console.log("IT WORKED");
+	console.log(req.body);
 	let language = req.body.lang;
 	//console.log(language);
 	if (language != 'python' && language != 'cpp' && language != 'java') {
 		console.log("bad");
-		res.send("Unacceptable code language");
+		res.send("unacceptable code language");
 		return;
 	}
 
 	let pid = req.body.problemid;
 	if(pid ==""){
-		res.send("You didn't select an actual problem");
+		res.send("You didn't select an actual problem :O");
 		return;
 	}
 	let file = req.body.code;
 	code = {"code": req.body.code, "language":language}
 	problem = {"id": parseInt(pid), "tl" : 1000, "ml" : 1000, "checkid": 1}
-	//console.log(problem);
+	console.log(problem);
 	result= await run(problem, code);
 	console.log("FINISHED RUNNING CODE, RESULT IS:");
 	console.log(result);
