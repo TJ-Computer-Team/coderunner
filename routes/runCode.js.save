@@ -39,8 +39,7 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
                 fs.writeFileSync('subcode/test.cpp', solution);
                 //write to correct file for code
                 try {
-                        //str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file
-			str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file+" > subcode/output.txt";
+                        str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file
 			if (false) {
 				str = 'sudo ./nsjail/nsjail --config nsjail/configs/cpp5seconds.cfg < '+input_file
 			}
@@ -65,8 +64,8 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
                 //console.log("running python\n" + solution);
                 fs.writeFileSync('subcode/hello.py', solution);
                 try {
-			//str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
-			str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file + " > subcode/output.txt";
+			str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
+			//str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file + " > subcode/output.txt";
 			if (extended) {		
 				str = 'sudo ./nsjail/nsjail --config nsjail/configs/python15seconds.cfg < '+input_file
 			}
@@ -90,10 +89,9 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
         else if (lang== 'java') {
                 fs.writeFileSync('subcode/test.java', solution);
                 try {
-                        //str = 'sudo ./nsjail/nsjail --config nsjail/configs/java.cfg < '+input_file
-                        str = 'sudo ./nsjail/nsjail --config nsjail/configs/java.cfg < '+input_file + " > subcode/output.txt";
-			output = execSync("javac subcode/test.java", { encoding: 'utf-8' });
-                        start = performance.now()+1200;
+                        str = 'sudo ./nsjail/nsjail --config nsjail/configs/java.cfg < '+input_file
+                        output = execSync("javac subcode/test.java", { encoding: 'utf-8' });
+                        start = performance.now()+900;
 			output = execSync(str, { encoding: 'utf-8' });
                 	end = performance.now();
 		}
@@ -204,7 +202,9 @@ async function run(problem, submit) {
 					output = output.trim()
 					payload.output = output
 					console.log("error in compilation.")
-					compError = true
+					if(!rerun){
+						compError = true;
+					}
 				}
 				if(!rerun){
 					break;
@@ -214,7 +214,7 @@ async function run(problem, submit) {
 				res(payload);
 				break;
 			}
-			//fs.writeFileSync("subcode/output.txt", output)
+			fs.writeFileSync("subcode/output.txt", output)
                         fs.writeFileSync("subcode/args.txt", problem.id+" "+i)
                         //console.log("output was", output)
                         juryAnswer = await runCode("subcode/args.txt", "python", checkerCode, true, extended, true);

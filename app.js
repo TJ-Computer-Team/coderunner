@@ -48,8 +48,7 @@ app.post("/run", async (req, res) => {
 	code = {"code": req.body.code, "language":language}
 	problem = {"id": parseInt(pid), "tl" : 1000, "ml" : 1000, "checkid": 1}
 	//console.log(problem);
-	result= await run(problem, code);
-	console.log("FINISHED RUNNING CODE, RESULT IS:");
+	let result = await run(problem, code);
 	console.log(result);
 	res.send(result)
 	//make this post and run code here, return verdict. still do queueing in the main vm
