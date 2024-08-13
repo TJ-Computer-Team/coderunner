@@ -41,12 +41,11 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
                 try {
                         //str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file
 			str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file+" > subcode/output.txt";
-			if (false) {
-				str = 'sudo ./nsjail/nsjail --config nsjail/configs/cpp5seconds.cfg < '+input_file
-			}
+			/*
 			if (compile) {
                         	output = execSync("g++ -o subcode/a.out subcode/test.cpp", { encoding: 'utf-8' });
                         }
+			*/
 			start = performance.now();
 			output = execSync(str, { encoding: 'utf-8' });
 			end = performance.now();
@@ -63,7 +62,7 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
         }
         else if (lang== 'python') {
                 //console.log("running python\n" + solution);
-                fs.writeFileSync('subcode/hello.py', solution);
+                fs.writeFileSync('subcode/test.py', solution);
                 try {
 			//str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file
 			str = 'sudo ./nsjail/nsjail --config nsjail/configs/python.cfg < '+input_file + " > subcode/output.txt";
