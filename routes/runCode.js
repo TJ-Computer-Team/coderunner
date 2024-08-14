@@ -41,11 +41,9 @@ async function runCode(input_file, lang, solution, compile, extended, checker=fa
                 try {
                         //str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file
 			str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable.cfg < '+input_file+" > subcode/output.txt";
-			/*
 			if (compile) {
                         	output = execSync("g++ -o subcode/a.out subcode/test.cpp", { encoding: 'utf-8' });
-                        }
-			*/
+			}
 			start = performance.now();
 			output = execSync(str, { encoding: 'utf-8' });
 			end = performance.now();
