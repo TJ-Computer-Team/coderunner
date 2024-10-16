@@ -90,7 +90,7 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
             output = execSync("javac subcode/test.java", {
                 encoding: 'utf-8'
             });
-            start = performance.now() + 1200; // scuffed fix because of how java works
+            start = performance.now()+500;
             output = execSync(str, {
                 encoding: 'utf-8'
             });
