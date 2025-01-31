@@ -163,7 +163,7 @@ async function run(problem, submit) {
                 let outputfull;
                 let output;
                 let compError = false
-                for (let iterations = 0; iterations < 3; iterations++) {
+                for (let iterations = 0; iterations < 2; iterations++) {
                     rerun = false;
                     outputfull = await runCode(loc + i, language, userCode, tl, ml, true)
                     await timeout(100);
