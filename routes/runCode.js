@@ -38,7 +38,7 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
     let start = 0;
     let end = -1;
     let time_suffix = '';
-    if (tl != 1000 && (tl % 1000 == 0 && tl <= 5000 || tl == 20000)) {
+    if (tl != 1000 && (tl % 1000 == 0 && tl <= 8000 || tl == 20000)) {
         time_suffix = String(tl/100);
     }
     if (lang == 'cpp') {
