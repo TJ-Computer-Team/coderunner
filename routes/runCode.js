@@ -45,6 +45,9 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
         fs.writeFileSync('subcode/test.cpp', solution);
         try {
             str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
+            if (process.env.PROD == 'false') {
+                str = str.slice(5);
+            }
             if (compile) {
                 output = execSync("g++ -std=c++17 -o subcode/a.out subcode/test.cpp", {
                     encoding: 'utf-8'
@@ -70,6 +73,9 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
             if (checker) {
                 str = 'sudo ./nsjail/nsjail --config nsjail/configs/pythonchecker' + time_suffix + '.cfg < ' + input_file
             }
+            if (process.env.PROD == 'false') {
+                str = str.slice(5);
+            }
             start = performance.now();
             output = execSync(str, {
                 encoding: 'utf-8'
@@ -87,6 +93,9 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
         fs.writeFileSync('subcode/test.java', solution);
         try {
             str = 'sudo ./nsjail/nsjail --config nsjail/configs/java' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
+            if (process.env.PROD == 'false') {
+                str = str.slice(5);
+            }
             output = execSync("javac subcode/test.java", {
                 encoding: 'utf-8'
             });
