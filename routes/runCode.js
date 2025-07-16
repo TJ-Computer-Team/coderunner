@@ -191,7 +191,7 @@ async function run(problem, submit) {
                             payload.verdict = "Memory Limit Exceeded"
                             rerun = true;
                         }
-                        payload.tl = maxtime
+                        payload.runtime = maxtime
                         output = output.replace(/^\[I\].*/gm, '');
                         output = output.trim()
                         payload.output = output
@@ -216,7 +216,7 @@ async function run(problem, submit) {
                     console.log("Checker timeout error");
                     payload.verdict = "ERROR";
                     payload.output = "System Error: checker timed out";
-                    payload.tl = maxtime;
+                    payload.runtime = maxtime;
                     solved = false;
                     await timeout(500);
                     res(payload);
@@ -228,7 +228,7 @@ async function run(problem, submit) {
                     if (testnum >= 1) {
                         payload.output = "Viewing as admin:\n" + payload.output;
                     }
-                    payload.tl = maxtime;
+                    payload.runtime = maxtime;
                     solved = false;
                     await timeout(250);
                     res(payload);
@@ -239,7 +239,7 @@ async function run(problem, submit) {
             }
             if (solved) {
                 payload.verdict = "Accepted";
-                payload.tl = maxtime;
+                payload.runtime = maxtime;
                 payload.output = "All tests correct - no additional feedback"
                 await timeout(250);
                 res(payload);
