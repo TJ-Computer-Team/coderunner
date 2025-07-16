@@ -1,0 +1,36 @@
+pid, test= input().split()
+f = open("../../problems/"+pid+"/sol/"+test, "r").readlines()
+f2 = open("output.txt", "r").readlines()
+
+f = [line.strip() for line in f if line.strip()]
+f2 = [line.strip() for line in f2 if line.strip()]
+
+if (len(f) != len(f2)):
+        x = ''.join(f2)[:10]
+        x = x.strip()
+        if len(x)==0:
+              print(f"User didn't output anything")
+        else:
+              print(f"User output was {x}")
+        print("Verdict: WA")
+        exit()
+
+t = 0
+for i, j in zip(f, f2):
+        if i != j:
+                f3 = open("../../problems/"+pid+"/test/"+test, "r").readlines()
+                print(f"Failed -- Wrong Answer:\n")
+                for line in f3[:10]:
+                        line = line.strip()
+                        print(line[:100], end="")
+                        if len(line) > 100:
+                                print("...")
+                        else:
+                                print()
+                if len(f3) > 10:
+                        print("...")
+                print()
+                print(f"User output was {j.strip()[:100]}; correct is {i.strip()[:100]}.")
+                print("Verdict: WA")
+                exit()
+print("AC")
