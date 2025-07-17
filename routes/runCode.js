@@ -44,7 +44,8 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
     if (lang == 'cpp') {
         fs.writeFileSync('subcode/test.cpp', solution);
         try {
-            str = 'sudo ./nsjail/nsjail --config nsjail/configs/executable' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
+            
+            str = 'sudo ./nsjail/nsjail --quiet --config nsjail/configs/executable' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
             if (process.env.PROD == 'false') {
                 str = str.slice(5);
             }
@@ -69,9 +70,9 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
     } else if (lang == 'python') {
         fs.writeFileSync('subcode/test.py', solution);
         try {
-            str = 'sudo ./nsjail/nsjail --config nsjail/configs/python' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
+            str = 'sudo ./nsjail/nsjail --quiet --config nsjail/configs/python' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
             if (checker) {
-                str = 'sudo ./nsjail/nsjail --config nsjail/configs/pythonchecker' + time_suffix + '.cfg < ' + input_file
+                str = 'sudo ./nsjail/nsjail --quiet --config nsjail/configs/pythonchecker' + time_suffix + '.cfg < ' + input_file;
             }
             if (process.env.PROD == 'false') {
                 str = str.slice(5);
@@ -92,7 +93,7 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
     } else if (lang == 'java') {
         fs.writeFileSync('subcode/test.java', solution);
         try {
-            str = 'sudo ./nsjail/nsjail --config nsjail/configs/java' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
+            str = 'sudo ./nsjail/nsjail --quiet --config nsjail/configs/java' + time_suffix + '.cfg < ' + input_file + " > subcode/output.txt";
             if (process.env.PROD == 'false') {
                 str = str.slice(5);
             }
@@ -120,7 +121,6 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
         output: output,
         time: parseInt(rt)
     }
-    console.log(end, start, rt);
     return payload;
 }
 async function compileTests(problem) { // not in use
@@ -168,14 +168,12 @@ async function run(problem, submit) {
             let solved = true;
             for (_ in files) {
                 i = files[_]
-                console.log(loc + i);
                 let outputfull;
                 let output;
                 let compError = false
                 for (let iterations = 0; iterations < 2; iterations++) {
                     rerun = false;
                     outputfull = await runCode(loc + i, language, userCode, tl, ml, true)
-                    await timeout(100);
                     output = outputfull.output;
                     if (outputfull.time > maxtime) maxtime = outputfull.time;
                     if (outputfull.time == -1) {
@@ -208,17 +206,13 @@ async function run(problem, submit) {
                 }
                 fs.writeFileSync("subcode/args.txt", problem.id + " " + i)
                 juryAnswer = await runCode("subcode/args.txt", "python", checkerCode, -1, -1, true, true);
-                await timeout(100);
                 juryAnswer = juryAnswer.output;
-                console.log("Timing:");
-                console.log(maxtime, outputfull.time);
                 if (juryAnswer.includes("run time >= time limit")) {
                     console.log("Checker timeout error");
                     payload.verdict = "ERROR";
                     payload.output = "System Error: checker timed out";
                     payload.runtime = maxtime;
                     solved = false;
-                    await timeout(500);
                     res(payload);
                     break;
                 }
@@ -230,7 +224,6 @@ async function run(problem, submit) {
                     }
                     payload.runtime = maxtime;
                     solved = false;
-                    await timeout(250);
                     res(payload);
                     break;
                 }
@@ -241,7 +234,6 @@ async function run(problem, submit) {
                 payload.verdict = "Accepted";
                 payload.runtime = maxtime;
                 payload.output = "All tests correct - no additional feedback"
-                await timeout(250);
                 res(payload);
             }
         });
