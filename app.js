@@ -5,20 +5,20 @@ const port = 8080;
 const {
     run,
     addTests,
-    addChecker
+    addProblem,
 } = require("./routes/runCode");
 app.use(express.urlencoded({
     extended: false
 }));
 
-app.post("/addChecker", async (req, res) => { // not in use
-    addChecker(req.body.pid, req.body.code)
-    res.send("Checker added")
-});
-
-app.post("/addTest", async (req, res) => { // not in use
+app.post("/addTest", async (req, res) => {
     addTests(req.body.pid, req.body.tid, req.body.test, req.body.out)
     res.send("Test added")
+});
+
+app.post("/addProblem", async (req, res) => {
+    addProblem(req.body.pid);
+    res.send("Added problem " + req.body.pid + " to coderunner");
 });
 
 app.post("/run", async (req, res) => {
@@ -52,4 +52,4 @@ app.post("/run", async (req, res) => {
 });
 
 console.log("Application started");
-app.listen(port);
+app.listen(port, '0.0.0.0');

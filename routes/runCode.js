@@ -1,38 +1,41 @@
 const execSync = require('child_process').execSync;
-const fs = require('fs');
-const {
-    add
-} = require("./sql");
 
-async function addTests(pid, tid, test, out) { // not used
-    let loc = "../problems/" + pid;
-    if (!fs.existsSync(loc + pid)) {
-        fs.mkdirSync(loc + "/sol", {
-            recursive: true
-        });
+const fs = require("fs");
+const path = require("path");
+
+function addTests(pid, tid, test, out) {
+    const loc = path.join("..", "problems", pid);
+    const solDir = path.join(loc, "sol");
+    const testDir = path.join(loc, "test");
+
+    try {
+        fs.mkdirSync(solDir, { recursive: true });
+        fs.mkdirSync(testDir, { recursive: true });
+
+        fs.writeFileSync(path.join(testDir, tid), test);
+        fs.writeFileSync(path.join(solDir, tid), out);
+    } catch (error) {
+        console.error("Failed to add tests:", error);
+        throw error;
     }
-    if (!fs.existsSync(loc + pid)) {
-        fs.mkdirSync(loc + "/test", {
-            recursive: true
-        });
-    }
-    fs.writeFileSync(loc + "/test/" + tid, test);
-    fs.writeFileSync(loc + "/sol/" + tid, out);
 }
-async function addChecker(pid, code) { // not used
-    let loc = "../problems/" + pid;
-    if (!fs.existsSync(loc + pid)) {
-        fs.mkdirSync(loc + "/sol", {
-            recursive: true
-        });
+
+function addProblem(pid) {
+    const loc = path.join("..", "problems", pid);
+
+    try {
+        fs.mkdirSync(loc, { recursive: true });
+
+        const checker = fs.readFileSync("/home/tjctgrader/coderunner/dev/code", "utf8");
+
+        fs.writeFileSync(path.join(loc, "code"), checker);
+    } catch (error) {
+        console.error("Failed to add problem:", error);
+        throw error;
     }
-    if (!fs.existsSync(loc + pid)) {
-        fs.mkdirSync(loc + "/test", {
-            recursive: true
-        });
-    }
-    fs.writeFileSync(loc + "/code", code);
 }
+
+
 async function runCode(input_file, lang, solution, tl, ml, compile = false, checker = false) {
     let output = ''
     let start = 0;
@@ -123,14 +126,7 @@ async function runCode(input_file, lang, solution, tl, ml, compile = false, chec
     }
     return payload;
 }
-async function compileTests(problem) { // not in use
-    let loc = "../problems/" + problem.id;
-    fs.readdir(loc, (err, files) => {
-        for (i in files) {
-            fs.writeFileSync(loc + "/sol/" + i, runCode(i, problem.lang, code, problem.tl, problem.ml).output);
-        }
-    });
-}
+
 async function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -239,23 +235,16 @@ async function run(problem, submit) {
         });
     });
 }
-async function addProblem(pid, tl, ml, checker) { // not in use
-    let loc = "../problems/" + pid;
-    fs.writeFileSync(loc + "/checker.cpp", checker);
-    add(pid, tl, ml);
-}
+
 
 module.exports = {
     run: (problem, submit) => {
         return run(problem, submit);
     },
-    compileTests: (problem) => {
-        return compileTests(problem);
-    },
     addTests: (problem, tid, test, out) => {
         return addTests(problem, tid, test, out);
     },
-    addChecker: (pid, code) => {
-        return addChecker(pid, code);
+    addProblem: (pid, checker) => {
+        return addProblem(pid, checker);
     }
 }

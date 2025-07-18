@@ -8,9 +8,6 @@ RUN npm install
 
 COPY . .
 
-RUN chmod +x /home/tjctgrader/coderunner/dev/generate_problems.sh
-RUN bash /home/tjctgrader/coderunner/dev/generate_problems.sh
-
 RUN apt-get update && \
     apt-get install -y \
         flex \
@@ -31,8 +28,10 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 RUN apt-get update && apt-get install -y default-jdk && rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x /home/tjctgrader/coderunner/generate_subcode.sh
-RUN bash /home/tjctgrader/coderunner/generate_subcode.sh
+RUN mkdir -p /home/tjctgrader/coderunner/subcode
+RUN touch /home/tjctgrader/coderunner/test.py
+RUN touch /home/tjctgrader/coderunner/test.java
+RUN touch /home/tjctgrader/coderunner/test.cpp
 
 EXPOSE 8080
 
