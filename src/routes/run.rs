@@ -130,7 +130,7 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
     }
 
     // Comment for debugging
-    let _ = fs::remove_dir_all(&subdir);
+    // let _ = fs::remove_dir_all(&subdir);
 
     let resp = serde_json::json!({
         "verdict": verdict_overall,
