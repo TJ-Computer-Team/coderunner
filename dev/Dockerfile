@@ -1,10 +1,6 @@
-FROM node:20
+FROM rust:1.88
 
 WORKDIR /home/tjctgrader/coderunner
-
-COPY ./package*.json ./
-RUN npm install
-
 
 COPY . .
 
@@ -16,23 +12,14 @@ RUN apt-get update && \
         protobuf-compiler \
         libprotobuf-dev \
         libnl-3-dev \
-        libnl-route-3-dev
+        libnl-route-3-dev \
+        default-jdk
+RUN cargo install --locked watchexec-cli
 
 RUN cd nsjail && make && cd ..
 
-COPY dev/archive.zip /tmp/archive.zip
-RUN apt-get update && apt-get install -y unzip
-COPY dev/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
-RUN apt-get update && apt-get install -y default-jdk && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /home/tjctgrader/coderunner/subcode
-RUN touch /home/tjctgrader/coderunner/test.py
-RUN touch /home/tjctgrader/coderunner/test.java
-RUN touch /home/tjctgrader/coderunner/test.cpp
+COPY dev/*.cfg /home/tjctgrader/coderunner/nsjail/configs/
 
 EXPOSE 8080
 
-CMD ["npm", "run", "dev"]
+CMD ["watchexec", "-r", "--debounce", "1s", "cargo", "run"]

@@ -1,0 +1,17 @@
+[package]
+name = "coderunner"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+dotenv = "0.15"
+libc = "0.2"
+uuid = { version = "1.8.0", features = ["v4", "serde"] }
+tokio = { version = "1", features = ["full"] }
+
+[[bin]]
+name = "coderunner"
+path = "src/main.rs"

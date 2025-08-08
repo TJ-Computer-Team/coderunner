@@ -1,5 +1,4 @@
-pid, test= input().split()
-f = open("../../problems/"+pid+"/sol/"+test, "r").readlines()
+f = open("sol.txt", "r").readlines()
 f2 = open("output.txt", "r").readlines()
 
 f = [line.strip() for line in f if line.strip()]
@@ -18,7 +17,7 @@ if (len(f) != len(f2)):
 t = 0
 for i, j in zip(f, f2):
         if i != j:
-                f3 = open("../../problems/"+pid+"/test/"+test, "r").readlines()
+                f3 = open("test.txt", "r").readlines()
                 print(f"Failed -- Wrong Answer:\n")
                 for line in f3[:10]:
                         line = line.strip()
