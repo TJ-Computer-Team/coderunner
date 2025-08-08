@@ -137,5 +137,6 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
         "output": insight_overall,
         "runtime": overall_time,
     });
+    dbg!(&resp);
     HttpResponse::Ok().json(resp)
 }
