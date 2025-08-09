@@ -127,6 +127,7 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
             verdict_overall = format!("Wrong Answer on test {}", test_name);
             break;
         }
+        println!("Graded test {} for problem {} for sub {}", test_name.to_string(), form.problemid.to_string(), form.subid.to_string());
     }
 
     // Comment for debugging

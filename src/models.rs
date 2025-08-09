@@ -15,6 +15,7 @@ pub struct AddProblemForm {
 
 #[derive(Deserialize)]
 pub struct RunForm {
+    pub subid: String,
     pub lang: String,
     pub problemid: String,
     pub tl_string: String,
