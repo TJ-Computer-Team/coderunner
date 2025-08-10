@@ -18,33 +18,6 @@ pub fn run_code(
     checker_testid: Option<&str>,
     checker_problemid: Option<&str>,
 ) -> io::Result<(String, String, u128)> {
-    if lang == "cpp" || lang == "java" {
-        let (compile_status, compile_stderr) = match lang {
-            "cpp" => {
-                let output = Command::new("g++")
-                    .args([
-                        "-std=c++17",
-                        "-O2",
-                        "-o",
-                        subdir.join("usercode").to_str().unwrap(),
-                        source_path.to_str().unwrap(),
-                    ])
-                    .output()?;
-                (output.status, String::from_utf8_lossy(&output.stderr).to_string())
-            },
-            "java" => {
-                let output = Command::new("javac")
-                    .arg(source_path.to_str().unwrap())
-                    .output()?;
-                (output.status, String::from_utf8_lossy(&output.stderr).to_string())
-            },
-            _ => unreachable!(),
-        };
-        if !compile_status.success() {
-            return Ok(("Compilation Error".to_string(), compile_stderr, 0));
-        }
-    }
-
     let mut cmd = if std::env::var("PROD").is_err() {
         let mut c = Command::new("sudo");
         c.arg("./nsjail/nsjail");
@@ -54,6 +27,7 @@ pub fn run_code(
     };
 
     cmd.arg("--quiet");
+    cmd.arg("--time_limit").arg((tl / 1000u128).to_string());
     cmd.arg("--cgroup_mem_max").arg((ml * 1024 * 1024).to_string());
     cmd.arg("--cgroup_pids_max").arg("10");
     
@@ -81,8 +55,6 @@ pub fn run_code(
         cmd.arg("-R").arg(format!("/home/tjctgrader/problems/{}/test/{}:/subcode/test.txt", checker_problemid.unwrap(), checker_testid.unwrap()));
         cmd.arg("-R").arg(format!("{}/output.txt:/subcode/output.txt", subdir.to_str().unwrap()));
     }
-
-    cmd.arg("--time_limit").arg((tl / 1000u128).to_string());
     
     match (lang, checker) {
         ("cpp", _) => cmd.arg("/subcode/usercode"),

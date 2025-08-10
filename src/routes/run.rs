@@ -1,6 +1,7 @@
 use crate::models::{RunForm};
 use crate::runner;
 use actix_web::{post, web, HttpResponse, Responder};
+use std::process::{Command};
 use serde_json;
 use std::fs;
 use std::path::Path;
@@ -8,17 +9,20 @@ use uuid::Uuid;
 
 #[post("/run")]
 pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
-    let tl: u128 = form.tl_string.parse().expect("Failed to convert tl to u128");
+    let mut tl: u128 = form.tl_string.parse().expect("Failed to convert tl to u128");
     let ml: u64 = form.ml_string.parse().expect("Failed to convert ml to u64");
     let lang = form.lang.as_str();
+    let problemid = &form.problemid;
+    let subid = &form.subid;
+
     if !["python", "cpp", "java"].contains(&lang) {
         return HttpResponse::BadRequest().body("Unacceptable code language");
     }
-    if form.problemid.is_empty() {
+    if problemid.is_empty() {
         return HttpResponse::BadRequest().body("You didn't select an actual problem");
     }
     
-    let problem_base_path = Path::new("/home/tjctgrader/problems").join(&form.problemid);
+    let problem_base_path = Path::new("/home/tjctgrader/problems").join(&problemid);
     if !problem_base_path.exists() {
         return HttpResponse::BadRequest().body("Problem does not exist on coderunner filesystem");
     }
@@ -37,8 +41,8 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
     };
 
 
-    let sol_filename = format!("usercode.{}", extension);
-    let sol_path = subdir.join(&sol_filename);
+    let mut sol_filename = format!("usercode.{}", extension);
+    let mut sol_path = subdir.join(&sol_filename);
     match fs::write(&sol_path, &form.code) {
         Ok(_) => {},
         Err(e) => {
@@ -46,6 +50,47 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
             std::process::exit(1);
         },
     }
+
+    if lang == "cpp" || lang == "java" {
+        let (compile_status, compile_stderr) = match lang {
+            "cpp" => {
+                let output = Command::new("g++")
+                    .args([
+                        "-std=c++17",
+                        "-O2",
+                        "-o",
+                        subdir.join("usercode").to_str().unwrap(),
+                        sol_path.to_str().unwrap(),
+                    ])
+                    .output()
+                    .expect("Failed to run g++");
+
+                sol_path = subdir.join("usercode");
+                sol_filename = "usercode".to_string();
+                (output.status, String::from_utf8_lossy(&output.stderr).to_string())
+            }
+            "java" => {
+                let output = Command::new("javac")
+                    .arg(sol_path.to_str().unwrap())
+                    .output()
+                    .expect("Failed to run javac");
+
+                sol_path = subdir.join("usercode");
+                sol_filename = "usercode".to_string();
+                (output.status, String::from_utf8_lossy(&output.stderr).to_string())
+            }
+            _ => unreachable!(),
+        };
+
+        if !compile_status.success() {
+            return HttpResponse::Ok().json(serde_json::json!({
+                "verdict": "Compilation Error",
+                "output": compile_stderr,
+                "runtime": 0,
+            }));
+        }
+    }
+
 
     let mut verdict_overall = "Accepted".to_string();
     let mut insight_overall = "".to_string();
@@ -68,15 +113,14 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
         let file_path = entry.path();
         let test_name = file_path.file_name().unwrap_or_default().to_str().unwrap_or_default();
 
-        let mut actual_tl = tl;
         if lang == "java" {
-            actual_tl *= 2;
+            tl *= 2;
         } else if lang == "python" {
-            actual_tl *= 3;
+            tl *= 3;
         }
 
         let run_result = runner::run_code(
-            &subdir, Some(&file_path), lang, &sol_path, &sol_filename, actual_tl, ml, false, None, None
+            &subdir, Some(&file_path), lang, &sol_path, &sol_filename, tl, ml, false, None, None
         );
 
         let (output, insight, time_used) = match run_result {
@@ -87,12 +131,6 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
                 break;
             }
         };
-
-        if output == "Compilation Error".to_string() {
-            verdict_overall = "Compilation Error".to_string();
-            insight_overall = insight;
-            break;
-        }
 
         overall_time = overall_time.max(time_used);
 
@@ -106,13 +144,9 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
             insight_overall = insight;
             break;
         }
-        if output == "Memory Limit Exceeded" {
-            verdict_overall = format!("Memory Limit Exceeded on test {}", test_name);
-            break;
-        }
 
         let checker_result = runner::run_code(
-            &subdir, None, "python", &checker_path, "default_checker.py", 20000, 1024, true, Some(&test_name), Some(&form.problemid)
+            &subdir, None, "python", &checker_path, "default_checker.py", 20000, 1024, true, Some(&test_name), Some(&problemid)
         );
 
         let (check_out, _, _) = match checker_result {
@@ -127,7 +161,7 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
             verdict_overall = format!("Wrong Answer on test {}", test_name);
             break;
         }
-        println!("Graded test {} for problem {} for sub {}", test_name.to_string(), form.problemid.to_string(), form.subid.to_string());
+        println!("Graded test {} for problem {} for sub {}", test_name.to_string(), problemid.to_string(), subid.to_string());
     }
 
     // Comment for debugging
