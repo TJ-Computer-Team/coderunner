@@ -6,6 +6,7 @@ use serde_json;
 use std::fs;
 use std::path::Path;
 use uuid::Uuid;
+use chrono::prelude::*;
 
 #[post("/run")]
 pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
@@ -15,6 +16,8 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
     let problemid = &form.problemid;
     let subid = &form.subid;
 
+    println!("{} - Started grading submission {}", Local::now().format("%Y-%m-%d %H:%M:%S"), subid);
+    
     if !["python", "cpp", "java"].contains(&lang) {
         return HttpResponse::BadRequest().body("Unacceptable code language");
     }
@@ -109,15 +112,16 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
         a.file_name().cmp(&b.file_name())
     });
 
+    if lang == "java" {
+        tl *= 2;
+    } else if lang == "python" {
+        dbg!(&tl);
+        tl *= 3;
+    }
+
     for entry in &sorted_entries {
         let file_path = entry.path();
         let test_name = file_path.file_name().unwrap_or_default().to_str().unwrap_or_default();
-
-        if lang == "java" {
-            tl *= 2;
-        } else if lang == "python" {
-            tl *= 3;
-        }
 
         let run_result = runner::run_code(
             &subdir, Some(&file_path), lang, &sol_path, &sol_filename, tl, ml, false, None, None
@@ -161,11 +165,12 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
             verdict_overall = format!("Wrong Answer on test {}", test_name);
             break;
         }
-        println!("Graded test {} for problem {} for sub {}", test_name.to_string(), problemid.to_string(), subid.to_string());
     }
 
     // Comment for debugging
     let _ = fs::remove_dir_all(&subdir);
+
+    println!("{} - Finished grading submission {}", Local::now().format("%Y-%m-%d %H:%M:%S"), subid);
 
     let resp = serde_json::json!({
         "verdict": verdict_overall,
