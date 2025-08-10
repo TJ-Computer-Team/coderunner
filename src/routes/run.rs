@@ -5,7 +5,6 @@ use std::process::{Command};
 use serde_json;
 use std::fs;
 use std::path::Path;
-use uuid::Uuid;
 use chrono::prelude::*;
 
 #[post("/run")]
@@ -33,7 +32,7 @@ pub async fn run_code_handler(form: web::Form<RunForm>) -> impl Responder {
     let test_dir = problem_base_path.join("test");
 
 
-    let subdir = Path::new("/home/tjctgrader/submissions").join(Uuid::new_v4().to_string());
+    let subdir = Path::new("/home/tjctgrader/submissions").join(subid.to_string());
     let _ = fs::create_dir_all(&subdir);
 
     let extension = match lang {
