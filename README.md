@@ -1,3 +1,34 @@
-## TJ Computer Team Coderunner
+# TJ Computer Team Coderunner
+This is the second part of the TJCT autograder system, which communicates with the [frontend](https://github.com/TJ-Computer-Team/autograder2) to receive submissions. It is written in rust and uses [actix web](https://github.com/actix/actix-web) to build the API. 
 
-This is a separate server than the autograder website, and the autograder website sends requests to the run function in `app.js`, which then calls the other functions in the `routes` folder to properly run the code. Not shown in this repository is a `subcode` folder that contains `cpp`, `.java`, and `.py` files that the submitted code is entered into. These files are then run and the output is piped to an output file for comparison with the correct output. Outside the `coderunner` folder is a separate folder named `problems` which contains folders for each problem id, which each contain a `code` checker file and `test` and `sol` folders containing the text for each test.
+
+## File Structure
+```
+/home/tjctgrader
+├── coderunner/
+│   ├── dev/                 # Dockerfile and nsjail configs
+│   ├── nsjail/              # Used for sandboxing user code
+│   ├── src/
+│   │   ├── main.rs          # Application entrypoint and server setup
+│   │   ├── models.rs        # Form models for API endpoints
+│   │   ├── runner.rs        # Core logic for running and checking code
+│   │   └── routes/
+│   │       ├── mod.rs       # Route registration
+│   │       ├── run.rs       # /run endpoint, calls functions from runner.rs to run code
+│   │       └── add.rs       # /addTest and /addProblem endpoints
+├── problems/
+│   └── [problem_id]/       
+│       ├── default_checker.py    # Checker file
+│       ├── sol/                  # Expected outcomes
+│       │   ├── 1
+│       │   ├── 2
+│       │   └── 3
+│       └── test/                 # Inputs
+│           ├── 1
+│           ├── 2
+│           └── 3
+└── submissions/             # Temporary storage of user submissions
+```
+
+## Building & Running
+Go to [the devenv repo](https://github.com/TJ-Computer-Team/devenv) and run `run.sh` to build and run the entire app.
